@@ -41,8 +41,21 @@ LRESULT CALLBACK Game::_WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPAR
 			::ShowCursor(TRUE);
 		break;
 
-	case WM_MOUSEMOVE:
-		GAME->_MouseMove(Vector<unsigned short, 2>(LOWORD(lparam), HIWORD(lparam)));
+	case WM_INPUT:
+		{
+			UINT size;
+			::GetRawInputData((HRAWINPUT)lparam, RID_INPUT, NULL, &size, sizeof(RAWINPUTHEADER));
+			LPBYTE data = new BYTE[size];
+
+			if (!data || ::GetRawInputData((HRAWINPUT)lparam, RID_INPUT, data, &size, sizeof(RAWINPUTHEADER)) != size) {
+				DebugMessage("Warning --\n\tCould not read raw input\n-----");
+				return 0;
+			}
+
+			GAME->_RawInput((RAWINPUT*)data);
+
+			delete[] data;
+		}
 		break;
 
 	default:
@@ -53,10 +66,12 @@ LRESULT CALLBACK Game::_WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPAR
 }
 
 void Game::Init() {
+	//Window
 	_windowclass.Register("MAINWINDOW", _WindowProcedure);
 	_window.Create(_windowclass, this);
 	_window.UseGLContext();
 
+	//OpenGL
 	glewInit();
 	glClearColor(0.f, 0.1f, 0.f, 1.f);
 	glEnable(GL_DEPTH_TEST);
@@ -65,6 +80,7 @@ void Game::Init() {
 
 	_program.Load("Data/Shaders/Shader.vert", "Data/Shaders/Shader.frag");
 
+	//Objects
 	CubeRenderer::Create();
 
 	_camera.SetFOV(90.f);
@@ -72,6 +88,17 @@ void Game::Init() {
 
 	_cube_t *= Matrix::Translation(Vector3F(-4.f, 0.f, 0.f));
 	_cube_t2 = Matrix::Translation(Vector3F(4.f, 0.f, 0.f));
+
+	//Raw input
+	_d_mouse = {
+		0x01,	//Usage page
+		0x02,	//Usage
+		0,		//Flags
+		NULL	//Hwnd target
+	};
+
+	if (RegisterRawInputDevices(&_d_mouse, 1, sizeof(RAWINPUTDEVICE)) == FALSE)
+		DebugMessage("Warning --\n\tCould not register raw input device!\n\n-----");
 }
 
 void Game::Start(int cmd_show) {
@@ -162,10 +189,10 @@ void Game::_Render() {
 }
 
 //Input handling
-void Game::_MouseMove(const Vector<unsigned short, 2>& m_pos) {
-	const float sensitivity = 0.125f;
-	if (_lock_cursor) {
-		_camera.rotation[0] += (m_pos[1] - _camera.GetSize()[1] / 2) * sensitivity;
-		_camera.rotation[1] += (m_pos[0] - _camera.GetSize()[0] / 2) * sensitivity;
+void Game::_RawInput(RAWINPUT* input) {
+	const float sensitivity = .25f;
+	if (_lock_cursor && input->header.dwType == RIM_TYPEMOUSE) {
+		_camera.rotation[0] += input->data.mouse.lLastY * sensitivity;
+		_camera.rotation[1] += input->data.mouse.lLastX * sensitivity;
 	}
 }

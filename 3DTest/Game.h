@@ -21,13 +21,17 @@ class Game {
 	GLProgram		_program;
 	Mat4			_cube_t;
 	Mat4			_cube_t2;
+
+	RAWINPUTDEVICE _d_mouse;
+
 	//Functions
 	void _Loop();
 	void _Frame();
 	void _Update(float FrameTime);
 	void _Render();
 
-	void _MouseMove(const Vector<unsigned short, 2>& position);
+	//Messages
+	void _RawInput(RAWINPUT*);
 
 	static LRESULT CALLBACK _WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 public:
