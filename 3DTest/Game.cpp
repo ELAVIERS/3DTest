@@ -4,7 +4,6 @@
 #include "String.h"
 #include <GL/glew.h>
 #include <GL/wglew.h> //wglSwapIntervalEXT
-#include <math.h>
 
 #define GAME ((Game*)::GetWindowLongPtr(hwnd, GWLP_USERDATA))
 LRESULT CALLBACK Game::_WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -74,17 +73,30 @@ void Game::Init() {
 	//OpenGL
 	glewInit();
 	glClearColor(0.f, 0.1f, 0.f, 1.f);
-	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	wglSwapIntervalEXT(0);
 
-	_program.Load("Data/Shaders/Shader.vert", "Data/Shaders/Shader.frag");
+	_geometry_program.Load("Data/Shaders/Shader.vert", "Data/Shaders/Shader.frag");
+	_text_program.Load("Data/Shaders/Text.vert", "Data/Shaders/Text.frag");
 
-	//Objects
+	//Managers
+	_fontmanager.Create();
+
 	CubeRenderer::Create();
 
+	//Objects
 	_camera.SetFOV(90.f);
 	_camera.position = Vector3F(0.f, 0.f, -5.f);
+
+	_font = &_fontmanager.GetFont("Data/Fonts/Font.ttf");
+	_font->SetSize(32);
+
+	_text_test.Create();
+	_text_test.SetFont(*_font);
+	_text_test.SetString("Wew, text rendering!");
 
 	_cube_t *= Matrix::Translation(Vector3F(-4.f, 0.f, 0.f));
 	_cube_t2 = Matrix::Translation(Vector3F(4.f, 0.f, 0.f));
@@ -174,16 +186,26 @@ void Game::_Update(float frame_time) {
 void Game::_Render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	_program.Use();
-	_program.SetParam("M_Projection", _camera.GetProjectionMatrix());
-	_program.SetParam("M_View", _camera.GetViewMatrix());
-	_program.SetParam("Time", runtime);
+	_geometry_program.Use();
+	glEnable(GL_DEPTH_TEST);
+	_geometry_program.SetParam("M_Projection", _camera.GetPerspective());
+	_geometry_program.SetParam("M_View", _camera.GetViewMatrix());
+	_geometry_program.SetParam("Time", runtime);
 
 	CubeRenderer::Bind();
-	_program.SetParam("M_Model", _cube_t);
+	_geometry_program.SetParam("M_Model", _cube_t);
 	CubeRenderer::Render();
-	_program.SetParam("M_Model", _cube_t2);
+	_geometry_program.SetParam("M_Model", _cube_t2);
 	CubeRenderer::Render();
+	////////
+
+	_text_program.Use();
+	glDisable(GL_DEPTH_TEST);
+	_text_program.SetParam("M_Projection", _camera.GetOrthographic());
+	_text_program.SetParam("M_Transform", Matrix::Translation(Vector3F(128, 128, 0)) * Matrix::ZRotation(15.f));
+	_text_program.SetParam("S_Texture", 0);
+	_text_test.Render();
+	////////
 
 	_window.Swap();
 }

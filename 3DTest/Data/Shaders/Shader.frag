@@ -7,7 +7,7 @@ in vec4 W_Normal;
 in vec4 C_Position;
 
 //Fragment colour
-out vec3 colour;
+out vec4 colour;
 
 float shininess = .0001;
 
@@ -26,5 +26,5 @@ void main() {
 	vec3 specular = specular_colour * pow(dot(reflection_dir, eye_dir), shininess);
 	specular = clamp(specular, 0, 1);
 	
-	colour = ambient + diffuse;
+	colour = vec4(ambient + diffuse, 1);
 }

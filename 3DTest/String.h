@@ -16,6 +16,8 @@ public:
 	static const String Convert(int);
 	static const String Convert(float);
 
+	static const String ConvertHex(int);
+
 	//Getters
 	inline const char* GetData() const { return _string; };
 	inline const size_t GetLength() const { return _size - 1; };
@@ -44,5 +46,3 @@ public:
 	bool operator>(const String& other) const;
 	bool operator<(const String& other) const;
 };
-
-#define CSTR(STRING) (String)(STRING).GetData()

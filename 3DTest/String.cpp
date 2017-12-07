@@ -2,8 +2,7 @@
 
 #include <cstring>
 
-String::String() {
-}
+String::String() : _string(NULL), _size(0) {}
 
 String::String(const char* str) {
 	_size = strlen(str) + 1;
@@ -134,6 +133,8 @@ const String operator+(const char* a, const String& b) {
 	snprintf(tostr, LEN, FORMAT, VAL); \
 	return String(tostr)
 
-const String String::Convert(char value) { CONVERT_BODY(5, value, "%d"); };
-const String String::Convert(int value) { CONVERT_BODY(12, value, "%d"); };
-const String String::Convert(float value) { CONVERT_BODY(16, value, "%f"); };
+const String String::Convert(char value) { CONVERT_BODY(5, value, "%d"); }
+const String String::Convert(int value) { CONVERT_BODY(12, value, "%d"); }
+const String String::Convert(float value) { CONVERT_BODY(16, value, "%f"); }
+
+const String String::ConvertHex(int value) { CONVERT_BODY(12, value, "%x"); }

@@ -6,8 +6,11 @@ class Camera
 {
 	Vector<unsigned short, 2>	_viewport_size;
 	float						_fov;
+	float						_near;
+	float						_far;
 
-	Mat4						_m_projection;
+	Mat4						_m_perspective;
+	Mat4						_m_orthographic;
 
 	void _CalculateProjection();
 public:
@@ -19,7 +22,9 @@ public:
 	Vector3F position;
 	Vector2F rotation;
 
-	inline const Mat4& GetProjectionMatrix() { return _m_projection; };
+	inline const Mat4& GetPerspective() { return _m_perspective; }
+	inline const Mat4& GetOrthographic() { return _m_orthographic; }
+
 	inline const Mat4 GetViewMatrix() {
 		return
 			Matrix::Translation(position * -1.f) *

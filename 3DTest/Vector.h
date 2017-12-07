@@ -8,8 +8,8 @@ protected:
 public:
 	Vector() {};
 
-	template <typename ...T>
-	Vector(T... args) : _data{ args... } { static_assert(sizeof...(args) == N, "Invalid argument count"); }
+	template <typename ...Args>
+	Vector(Args... args) : _data{ (T)args... } { static_assert(sizeof...(args) == N, "Invalid argument count"); }
 	~Vector() {}
 
 	inline		 T& operator[](int element)		  { return _data[element]; }
